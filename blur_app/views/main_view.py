@@ -1,10 +1,10 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views  import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from ..serializers import BlogSerializer
+from ..serializers import BlogSerializer, CategorySerializer, ProductSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from ..models import Blog
+from ..models import Blog, Category, Product
 
 
 # @api_view(['POST','GET'])
@@ -76,11 +76,51 @@ class BlogViewApp(APIView):
             return Response({'message':'NOT FOUND'}, status= status.HTTP_404_NOT_FOUND)
         blog_data.delete()
         return Response({'message':'Deleted Successfully'}, status=status.HTTP_200_OK)
-    
-    # def get_by_id(self, request, id):
-    #     try:
 
-    #     except 
+@api_view(['POST','GET'])
+@permission_classes([IsAuthenticated])
+def product_view(request):
+    if request.method == 'POST':
+       serializer=CategorySerializer(data=request.data)
+       if serializer.is_valid():
+           serializer.save()
+           return Response({'message':'Successful'}, status= status.HTTP_200_OK)
+       else:
+           return Response({'message':'Failed'}, status= status.HTTP_400_BAD_REQUEST)
+       
+    elif request.method == "GET":
+        category=Category.objects.all()
+        serializer=CategorySerializer(category, many=True)
+        return Response(serializer.data, status= status.HTTP_200_OK)
+    
+@api_view(['PUT','DELETE'])
+@permission_classes([IsAuthenticated])
+def get_delete(request, id):
+    try:
+        category=Category.objects.get(id=id)
+    except Category.DoesNotExist:
+        return Response({"message":"Category doesnot exist"},status=status.HTTP_400_BAD_REQUEST)
+    if request.method == "PUT":
+        serializer=CategorySerializer(category,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":'Successful','updated':serializer.data},status=status.HTTP_200_OK)
+        else:
+            return Response({'mesage':'Failed'},status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        category.delete()
+        return Response({"message":"Deleted Successfully"},status=status.HTTP_400_BAD_REQUEST)
+
+        
+        
+
+        
+            
+    
+
+
+
+
 
         
 
