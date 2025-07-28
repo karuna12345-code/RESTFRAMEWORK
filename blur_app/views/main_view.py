@@ -79,7 +79,7 @@ class BlogViewApp(APIView):
 
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
-def product_view(request):
+def category_view(request):
     if request.method == 'POST':
        serializer=CategorySerializer(data=request.data)
        if serializer.is_valid():
@@ -110,8 +110,51 @@ def get_delete(request, id):
     elif request.method == 'DELETE':
         category.delete()
         return Response({"message":"Deleted Successfully"},status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET','POST'])
+@permission_classes([IsAuthenticated])
+def product_view(request):
+    if request.method == "POST":
+        serializer=ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user) #user ko id pass garcha
+            return Response({'message':"Successful", "product": serializer.data},status= status.HTTP_200_OK)
+        else:
+            return Response({"message":"failed", "error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == "GET":
+        try:
+            product_data= Product.objects.all()
+            serializer=ProductSerializer(product_data, many=True)
+            return Response(serializer.data, status= status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "failed to fetch data","error":e})
+
+
+@api_view(['PUT','DELETE'])
+@permission_classes([IsAuthenticated])
+def update_del_product(request, id):
+    try:
+        product_data=Product.objects.get(id=id)
+    except Product.DoesNotExist:
+        return Response({"message":"Product doesnot exist"}, status=status.HTTP_404_NOT_FOUND)
+    if request.method == "PUT":
+        serializer=ProductSerializer(product_data, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Successful", "updated_data": serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message":"Failed"},status= status.HTTP_400_BAD_REQUEST)
+    if request.method == "DELETE":
+        product_data.delete()
+        return Response({'message':"Successful deleted"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
         
+
+
+        
+
         
 
         
