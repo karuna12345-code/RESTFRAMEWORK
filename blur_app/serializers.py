@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from .models import Blog, Product, Category
+from django.contrib.auth import get_user_model
 
+User=get_user_model()
 class BlogSerializer(serializers.ModelSerializer):
     class Meta:
         model= Blog
@@ -19,7 +20,10 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields=['id', 'user', 'created_at']
 
 class CategorySerializer(serializers.ModelSerializer):
+    product = ProductSerializer(many=True, read_only=True)
     class Meta:
         model= Category
-        fields= '__all__'
+        fields= ['id','title','created_at','product']
+
+
 

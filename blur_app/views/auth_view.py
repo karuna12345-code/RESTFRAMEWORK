@@ -2,12 +2,12 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import permissions
-from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import get_user_model
 
-
+User=get_user_model()
 # generate token function
 def get_tokens_for_user(user):
     refresh= RefreshToken.for_user(user)
@@ -27,14 +27,14 @@ def register_user(request):
         return Response({'err':"Username is already exists"})
     
     try:
-        user=User.objects.create_user(
+        User.objects.create_user(
             username= username,
             email=email,
             password=password
         )
         return Response({"message":"User registered Successfully"},status= status.HTTP_200_OK)
-    except:
-        return Response({'err':"Failed to register"},status= status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'err':"Failed to register", "error":str(e)},status= status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

@@ -69,6 +69,8 @@ class BlogViewApp(APIView):
         else:
             return Response({'message':'Failed to update'}, status=status.HTTP_400_BAD_REQUEST)
         
+
+        
     def delete(self, request, id):
         try:
             blog_data= Blog.objects.get(id=id)
@@ -79,6 +81,7 @@ class BlogViewApp(APIView):
 
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
+
 def category_view(request):
     if request.method == 'POST':
        serializer=CategorySerializer(data=request.data)
@@ -89,9 +92,17 @@ def category_view(request):
            return Response({'message':'Failed'}, status= status.HTTP_400_BAD_REQUEST)
        
     elif request.method == "GET":
-        category=Category.objects.all()
+        categories=Category.objects.all()
         serializer=CategorySerializer(category, many=True)
-        return Response(serializer.data, status= status.HTTP_200_OK)
+        data = []
+    for category in categories:
+        products = Product.objects.filter(category=category)
+        if products.exists():
+            category_data = CategorySerializer(category).data
+            product_data = ProductSerializer(products, many=True).data
+            category_data['products'] = product_data
+            data.append(category_data)
+    return Response({'data': data}, status=status.HTTP_200_OK)
     
 @api_view(['PUT','DELETE'])
 @permission_classes([IsAuthenticated])
@@ -110,6 +121,7 @@ def get_delete(request, id):
     elif request.method == 'DELETE':
         category.delete()
         return Response({"message":"Deleted Successfully"},status=status.HTTP_400_BAD_REQUEST)
+    
     
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -144,9 +156,11 @@ def update_del_product(request, id):
             return Response({"message":"Successful", "updated_data": serializer.data}, status=status.HTTP_200_OK)
         else:
             return Response({"message":"Failed"},status= status.HTTP_400_BAD_REQUEST)
+        
     if request.method == "DELETE":
         product_data.delete()
         return Response({'message':"Successful deleted"}, status=status.HTTP_400_BAD_REQUEST)
+   
 
 
 
